@@ -21,6 +21,6 @@ namespace FastLog.Core.Elasticsearch
 
         int Count(string type);
 
-        List<Dictionary<string, object>> GetList(string type);
+        List<Dictionary<string, object>> GetList(string type, int size = 10);
     }
 }

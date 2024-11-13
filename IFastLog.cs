@@ -9,9 +9,9 @@ namespace FastLog.Core
 
         void Delete(string type, string title);
 
-        List<string> Type();
+        List<string> Type(int size = 10);
 
-        List<Dictionary<string, object>> GetList(string type);
+        List<Dictionary<string, object>> GetList(string type, int size = 10);
 
         int Count(string type);
 

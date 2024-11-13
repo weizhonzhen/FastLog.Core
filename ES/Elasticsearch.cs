@@ -61,7 +61,7 @@ namespace FastLog.Core.Elasticsearch
 
         public int Count(string type)
         {
-            var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>(); 
+            var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             var page = client.Search<StringResponse>(type, PostData.Empty);
             if (page.Success)
             {
@@ -94,15 +94,16 @@ namespace FastLog.Core.Elasticsearch
             return result != null ? result.Success : false;
         }
 
-        public List<Dictionary<string, object>> GetList(string type)
+        public List<Dictionary<string, object>> GetList(string type, int size = 10)
         {
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
-            var result = client.Search<StringResponse>(type, PostData.Serializable(new { query = new { match_all = new { } } }));
+            var result = client.Search<StringResponse>(type, PostData.Serializable(new { query = new { match_all = new { } }, size =  size }));
             if (result.Success)
             {
                 var data = new List<Dictionary<string, object>>();
                 var list = JsonSerializer.Deserialize<EsResult>(result.Body, jsonOption);
-                list.hits.hits.ForEach(a => {
+                list.hits.hits.ForEach(a =>
+                {
                     data.Add(a._source);
                 });
 

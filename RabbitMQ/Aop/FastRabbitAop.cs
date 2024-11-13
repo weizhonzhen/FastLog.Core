@@ -22,7 +22,7 @@ namespace FastLog.Core.RabbitMQ.Aop
                 if (log != null)
                     result = client.Add(log);
 
-                var list = client.GetList(nameof(LogTypeModel.IdxLogType).ToLower());
+                var list = client.GetList(nameof(LogTypeModel.IdxLogType).ToLower(), 100);
                 if (!list.Exists(a => string.Compare(a[nameof(LogTypeModel.Name)].ToString(), log.Type, true) == 0) && result)
                     client.Add(new LogTypeModel() { Name = log.Type });
             }
