@@ -21,7 +21,7 @@ namespace FastLog.Core.Elasticsearch
         public bool Add(LogTypeModel model)
         {
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
-            var result = client.Index<StringResponse>(model.LogType, model.Id, PostData.Serializable(model));
+            var result = client.Index<StringResponse>(model.IdxLogType, model.Id, PostData.Serializable(model));
             return result != null ? result.Success : false;
         }
 

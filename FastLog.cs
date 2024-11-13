@@ -42,10 +42,10 @@ namespace FastLog.Core
         {
             var data = new List<string>();
             var client = ServiceContext.Engine.Resolve<IElasticsearch>();
-            var list = client.GetList(nameof(LogTypeModel.LogType).ToLower());
+            var list = client.GetList(nameof(LogTypeModel.IdxLogType).ToLower());
             list.ForEach(a =>
             {
-                data.Add(a[nameof(LogTypeModel.LogType)].ToString());
+                data.Add(a[nameof(LogTypeModel.Name)].ToString());
             });
             return data;
         }

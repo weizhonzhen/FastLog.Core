@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FastLog.Core.RabbitMQ.Context;
+using System;
 
 namespace FastLog.Core.RabbitMQ.Aop
 {

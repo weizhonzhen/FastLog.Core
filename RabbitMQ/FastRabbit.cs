@@ -1,5 +1,6 @@
 ﻿using FastLog.Core;
 using FastLog.Core.RabbitMQ.Aop;
+using FastLog.Core.RabbitMQ.Context;
 using FastLog.Core.RabbitMQ.Model;
 using RabbitMQ.Client;
 using System;

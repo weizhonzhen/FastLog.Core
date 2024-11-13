@@ -4,12 +4,12 @@ namespace FastLog.Core.Model
 {
     internal class LogTypeModel
     {
+        public string Name { get; set; }
+
         /// <summary>
         /// index
         /// </summary>
-        internal string Name { get; set; }
-
-        public string LogType { get; } = "logtype";
+        public string IdxLogType { get; set; } = "idxlogtype";
 
         public string Id { get; set; } = Guid.NewGuid().ToString();
     }

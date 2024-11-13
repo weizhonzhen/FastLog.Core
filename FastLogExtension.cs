@@ -2,6 +2,7 @@
 using FastLog.Core;
 using FastLog.Core.Elasticsearch;
 using FastLog.Core.RabbitMQ.Aop;
+using FastLog.Core.RabbitMQ.Context;
 using FastLog.Core.RabbitMQ.Model;
 using FastRabbitMQ.Core.Repository;
 using Microsoft.Extensions.Configuration;
@@ -86,7 +87,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return serviceCollection;
         }
 
-        private static void Init(IServiceCollection serviceCollection, ConfigDataES configES, ConfigDataMQ configMQ,bool isReceive=false)
+        private static void Init(IServiceCollection serviceCollection, ConfigDataES configES, ConfigDataMQ configMQ, bool isReceive = false)
         {
             //ES
             var node = new List<Node>();
