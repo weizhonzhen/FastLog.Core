@@ -17,7 +17,7 @@ namespace FastLog.Core
 
             model.Title = title;
             model.Content = message;
-            model.Type = type;
+            model.Type = type.ToLower();
 
             dic.Add("Add", model);
 
@@ -31,7 +31,7 @@ namespace FastLog.Core
             var dic = new Dictionary<string, object>();
 
             model.Title = title;
-            model.Type = type;
+            model.Type = type.ToLower();
 
             dic.Add("Delete", model);
 
@@ -74,19 +74,19 @@ namespace FastLog.Core
             if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(content))
                 query = new { wildcard = new { Title = $"{title}*", Content = $"{content}*" } };
 
-            return client.Page(pageSize, pageId, type, query, sort);
+            return client.Page(pageSize, pageId, type.ToLower(), query, sort);
         }
 
         public int Count(string type)
         {
             var client = ServiceContext.Engine.Resolve<IElasticsearch>();
-            return client.Count(type);
+            return client.Count(type.ToLower());
         }
 
         public List<Dictionary<string, object>> GetList(string type)
         {
             var client = ServiceContext.Engine.Resolve<IElasticsearch>();
-            return client.GetList(type);
+            return client.GetList(type.ToLower());
         }
     }
 }
