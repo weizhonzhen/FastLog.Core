@@ -70,13 +70,13 @@ namespace FastLog.Core
             if (!string.IsNullOrEmpty(content) && string.IsNullOrEmpty(title) && isWildCard == false)
                 query = new { match = new { Content = content } };
 
-            if (!string.IsNullOrEmpty(content) && string.IsNullOrEmpty(title))
+            if (!string.IsNullOrEmpty(content) && string.IsNullOrEmpty(title) && isWildCard)
                 query = new { wildcard = new { Content = $"{content}*" } };
 
             if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(content) && isWildCard == false)
                 query = new { match = new { Title = title, Content = content } };
 
-            if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(content))
+            if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(content) && isWildCard)
                 query = new { wildcard = new { Title = $"{title}*", Content = $"{content}*" } };
 
             return client.Page(pageSize, pageId, type, query, sort);
