@@ -1,11 +1,12 @@
 ﻿using FastLog.Core.ES.Model;
+using FastLog.Core.Model;
 using System.Collections.Generic;
 
 namespace FastLog.Core
 {
     public interface IFastLog
     {
-        void Save(string type, string title, string message);
+        void Save(LogModel model);
 
         void Delete(string type, string title, string id);
 
@@ -17,6 +18,6 @@ namespace FastLog.Core
 
         int Count(string type);
 
-        PageResult Page(string type, string title, string content, int pageId = 1, int pageSize = 10, bool isWildCard = false, bool isDesc = true);
+        PageResult Page(string type, string title, string content, string person, int pageId = 1, int pageSize = 10, bool isWildCard = false, bool isDesc = true);
     }
 }

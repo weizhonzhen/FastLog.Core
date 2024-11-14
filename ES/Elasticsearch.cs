@@ -1,10 +1,11 @@
 ﻿using Elasticsearch.Net;
 using FastLog.Core.ES.Model;
 using FastLog.Core.Model;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace FastLog.Core.Elasticsearch
 {
@@ -34,10 +35,20 @@ namespace FastLog.Core.Elasticsearch
 
             var data = new Dictionary<string, object>();
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
-            var page = client.Search<StringResponse>(type, PostData.Serializable(new { size = pageSize, from = (pageId - 1) * pageSize, query = query, sort = sort }));
+            StringResponse page;
+
+            if (!string.IsNullOrEmpty(type))
+                page = client.Search<StringResponse>(type, PostData.Serializable(new { size = pageSize, from = (pageId - 1) * pageSize, query = query, sort = sort }));
+            else
+                page = client.Search<StringResponse>(PostData.Serializable(new { size = pageSize, from = (pageId - 1) * pageSize, query = query, sort = sort }));
+
             if (page.Success)
             {
-                var list = JsonSerializer.Deserialize<EsResult>(page.Body, jsonOption);
+                var body = page.Body;
+                if (IsChinese(page.Body))
+                    body = Uri.UnescapeDataString(page.Body);
+
+                var list = JsonSerializer.Deserialize<EsResult>(body, jsonOption);
 
                 list.hits.hits.ForEach(a =>
                 {
@@ -63,7 +74,12 @@ namespace FastLog.Core.Elasticsearch
         public int Count(string type)
         {
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
-            var page = client.Search<StringResponse>(type, PostData.Empty);
+            StringResponse page;
+            if (!string.IsNullOrEmpty(type))
+                page = client.Search<StringResponse>(type, PostData.Empty);
+            else
+                page = client.Search<StringResponse>(PostData.Empty);
+
             if (page.Success)
             {
                 var list = JsonSerializer.Deserialize<EsResult>(page.Body, jsonOption);
@@ -112,11 +128,19 @@ namespace FastLog.Core.Elasticsearch
         public List<Dictionary<string, object>> GetList(string type, int size = 10)
         {
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
-            var result = client.Search<StringResponse>(type, PostData.Serializable(new { query = new { match_all = new { } }, size =  size }));
+            StringResponse result;
+            if (!string.IsNullOrEmpty(type))
+                result = client.Search<StringResponse>(type, PostData.Serializable(new { query = new { match_all = new { } }, size = size }));
+            else
+                result = client.Search<StringResponse>(PostData.Serializable(new { query = new { match_all = new { } }, size = size }));
             if (result.Success)
             {
+                var body = result.Body;
+                if (IsChinese(result.Body))
+                    body = Uri.UnescapeDataString(result.Body);
+
                 var data = new List<Dictionary<string, object>>();
-                var list = JsonSerializer.Deserialize<EsResult>(result.Body, jsonOption);
+                var list = JsonSerializer.Deserialize<EsResult>(body, jsonOption);
                 list.hits.hits.ForEach(a =>
                 {
                     data.Add(a._source);
@@ -126,6 +150,12 @@ namespace FastLog.Core.Elasticsearch
             }
             else
                 return new List<Dictionary<string, object>>();
+        }
+
+
+        private static bool IsChinese(string text)
+        {
+            return Regex.IsMatch(text, @"[\u4e00-\u9fff]");
         }
     }
 }

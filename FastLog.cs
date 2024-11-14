@@ -11,24 +11,19 @@ namespace FastLog.Core
     public class FastLog : IFastLog
     {
         private static List<char> filters = new List<char> { '\\', '/', '*', '?', '\"', '<', '>', '|', ' ', '#', '%', '{', '}', ':', '@', '&', '=' };
-        public void Save(string type, string title, string message)
+        public void Save(LogModel model)
         {
-            type = new string(type.ToLower().Where(c => !filters.Contains(c)).ToArray());
+            model.Type = model.Type ?? string.Empty;
+            model.Type = new string(model.Type.ToLower().Where(c => !filters.Contains(c)).ToArray());
             var client = ServiceContext.Engine.Resolve<IFastRabbit>();
-            var model = new LogModel();
             var dic = new Dictionary<string, object>();
-
-            model.Title = title;
-            model.Content = message;
-            model.Type = type;
-
             dic.Add("Add", model);
-
             client.Send(FastLogExtension.config, dic);
         }
 
         public void Delete(string type, string title, string id)
         {
+            type = type ?? string.Empty;
             type = new string(type.ToLower().Where(c => !filters.Contains(c)).ToArray());
             var client = ServiceContext.Engine.Resolve<IFastRabbit>();
             var model = new LogModel();
@@ -45,6 +40,7 @@ namespace FastLog.Core
 
         public void Delete(string type, string title, List<string> id)
         {
+            type = type ?? string.Empty;
             type = new string(type.ToLower().Where(c => !filters.Contains(c)).ToArray());
             var client = ServiceContext.Engine.Resolve<IFastRabbit>();
             var model = new LogModel();
@@ -68,39 +64,52 @@ namespace FastLog.Core
             {
                 data.Add(a[nameof(LogTypeModel.Name)].ToString());
             });
-            return data;
+            return data.Distinct().ToList();
         }
 
-        public PageResult Page(string type, string title, string content, int pageId = 1, int pageSize = 10, bool isWildCard = false, bool isDesc = true)
+        public PageResult Page(string type, string title, string content, string person, int pageId = 1, int pageSize = 10, bool isWildCard = false, bool isDesc = true)
         {
+            type = type ?? string.Empty;
             type = new string(type.ToLower().Where(c => !filters.Contains(c)).ToArray());
             var client = ServiceContext.Engine.Resolve<IElasticsearch>();
+            var query = new Dictionary<string, object>();
+            var wildcard = new Dictionary<string, object>();
+            var match = new Dictionary<string, object>();
             object sort = new[] { new { DateTime = new { order = isDesc ? "desc" : "asc" } } };
-            object query = new { match_all = new { } };
 
-            if (!string.IsNullOrEmpty(title) && string.IsNullOrEmpty(content) && isWildCard == false)
-                query = new { match = new { Title = title } };
+            if (!string.IsNullOrEmpty(title) && isWildCard)
+                wildcard.Add("Title", $"{title}*");
 
-            if (!string.IsNullOrEmpty(title) && string.IsNullOrEmpty(content) && isWildCard)
-                query = new { wildcard = new { Title = $"{title}*" } };
+            if (!string.IsNullOrEmpty(content) && isWildCard)
+                wildcard.Add("Content", $"{content}*");
 
-            if (!string.IsNullOrEmpty(content) && string.IsNullOrEmpty(title) && isWildCard == false)
-                query = new { match = new { Content = content } };
+            if (!string.IsNullOrEmpty(person) && isWildCard)
+                wildcard.Add("Person", $"{person}*");
 
-            if (!string.IsNullOrEmpty(content) && string.IsNullOrEmpty(title) && isWildCard)
-                query = new { wildcard = new { Content = $"{content}*" } };
+            if (!string.IsNullOrEmpty(title) && !isWildCard)
+                match.Add("Title", title);
 
-            if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(content) && isWildCard == false)
-                query = new { match = new { Title = title, Content = content } };
+            if (!string.IsNullOrEmpty(content) && !isWildCard)
+                match.Add("Content", content);
 
-            if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(content) && isWildCard)
-                query = new { wildcard = new { Title = $"{title}*", Content = $"{content}*" } };
+            if (!string.IsNullOrEmpty(person) && !isWildCard)
+                match.Add("Person", person);
+
+            if (match.Count == 0 && wildcard.Count == 0)
+                query.Add("match_all", new Dictionary<string,object>());
+
+            if (match.Count > 0)
+                query.Add("query", match);
+
+            if (wildcard.Count > 0)
+                query.Add("query", match);
 
             return client.Page(pageSize, pageId, type, query, sort);
         }
 
         public int Count(string type)
         {
+            type = type ?? string.Empty;
             type = new string(type.ToLower().Where(c => !filters.Contains(c)).ToArray());
             var client = ServiceContext.Engine.Resolve<IElasticsearch>();
             return client.Count(type);
@@ -108,6 +117,7 @@ namespace FastLog.Core
 
         public List<Dictionary<string, object>> GetList(string type, int size = 10)
         {
+            type = type ?? string.Empty;
             type = new string(type.ToLower().Where(c => !filters.Contains(c)).ToArray());
             var client = ServiceContext.Engine.Resolve<IElasticsearch>();
             return client.GetList(type,size);
