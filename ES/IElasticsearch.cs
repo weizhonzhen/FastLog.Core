@@ -15,6 +15,10 @@ namespace FastLog.Core.Elasticsearch
 
         bool delete(string type);
 
+        bool delete(string type, string id);
+
+        bool delete(string type, List<string> id);
+
         bool delete(string type, PostData body);
 
         PageResult Page(int pageSize, int pageId, string index, object query, object sort);

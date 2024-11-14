@@ -7,7 +7,9 @@ namespace FastLog.Core
     {
         void Save(string type, string title, string message);
 
-        void Delete(string type, string title);
+        void Delete(string type, string title, string id);
+
+        void Delete(string type, string title, List<string> id);
 
         List<string> Type(int size = 10);
 

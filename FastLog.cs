@@ -27,7 +27,7 @@ namespace FastLog.Core
             client.Send(FastLogExtension.config, dic);
         }
 
-        public void Delete(string type, string title)
+        public void Delete(string type, string title, string id)
         {
             type = new string(type.ToLower().Where(c => !filters.Contains(c)).ToArray());
             var client = ServiceContext.Engine.Resolve<IFastRabbit>();
@@ -36,6 +36,23 @@ namespace FastLog.Core
 
             model.Title = title;
             model.Type = type;
+            model.Id = id;
+
+            dic.Add("Delete", model);
+
+            client.Send(FastLogExtension.config, dic);
+        }
+
+        public void Delete(string type, string title, List<string> id)
+        {
+            type = new string(type.ToLower().Where(c => !filters.Contains(c)).ToArray());
+            var client = ServiceContext.Engine.Resolve<IFastRabbit>();
+            var model = new LogModel();
+            var dic = new Dictionary<string, object>();
+
+            model.Title = title;
+            model.Type = type;
+            model.Id = string.Join(",", id);
 
             dic.Add("Delete", model);
 

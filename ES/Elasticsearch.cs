@@ -2,6 +2,7 @@
 using FastLog.Core.ES.Model;
 using FastLog.Core.Model;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 
@@ -84,6 +85,20 @@ namespace FastLog.Core.Elasticsearch
         {
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             var result = client.DeleteByQuery<StringResponse>(type, PostData.Serializable(new { query = new { match_all = new { } } }));
+            return result != null ? result.Success : false;
+        }
+
+        public bool delete(string type, string id)
+        {
+            var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
+            var result = client.Delete<StringResponse>(type, id);
+            return result != null ? result.Success : false;
+        }
+
+        public bool delete(string type, List<string> _id)
+        {
+            var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
+            var result = client.DeleteByQuery<StringResponse>(type, PostData.Serializable(new { query = new { terms = new { _id } } }));
             return result != null ? result.Success : false;
         }
 

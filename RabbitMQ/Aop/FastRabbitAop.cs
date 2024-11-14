@@ -30,9 +30,16 @@ namespace FastLog.Core.RabbitMQ.Aop
             if (context.content.Keys.ToList().Exists(a => a == "Delete"))
             {
                 var log = JsonSerializer.Deserialize<LogModel>(context.content["Delete"].ToString());
-                if (log != null && !string.IsNullOrEmpty(log.Title))
+                if (log == null || string.IsNullOrEmpty(log.Type))
+                    return;
+                var list = log.Id.Split(',').ToList();
+                if (!string.IsNullOrEmpty(log.Id) && list.Count == 1)
+                    client.delete(log.Type, log.Id);
+                if (!string.IsNullOrEmpty(log.Id) && list.Count > 1)
+                    client.delete(log.Type, list);
+                if (!string.IsNullOrEmpty(log.Title))
                     client.delete(log.Type, new { match = new { Title = log.Title } });
-                if (log != null && string.IsNullOrEmpty(log.Title))
+                if (string.IsNullOrEmpty(log.Title) && string.IsNullOrEmpty(log.Id))
                     client.delete(log.Type);
             }
         }
