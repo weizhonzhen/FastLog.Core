@@ -6,7 +6,7 @@
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <Authors>FastLog.Core</Authors>
 	  <PackageId>FastLog.Core</PackageId>
-	  <Version>1.0.1</Version>
+	  <Version>1.5</Version>
 	  <Company>FastLog.Core</Company>
 	  <Product>FastLog.Core</Product>
 	  <Description>https://github.com/weizhonzhen/FastLog.Core

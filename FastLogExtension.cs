@@ -1,5 +1,6 @@
 ﻿using Elasticsearch.Net;
 using FastLog.Core;
+using FastLog.Core.Aop;
 using FastLog.Core.Elasticsearch;
 using FastLog.Core.RabbitMQ.Aop;
 using FastLog.Core.RabbitMQ.Context;
@@ -29,7 +30,7 @@ namespace Microsoft.Extensions.DependencyInjection
             Exchange = new Exchange { ExchangeType = FastLog.Core.RabbitMQ.Model.ExchangeType.direct }
         };
 
-        public static IServiceCollection AddFastLog(this IServiceCollection serviceCollection, Action<ConfigDataES> actionES, Action<ConfigDataMQ> actionMQ)
+        public static IServiceCollection AddFastLog(this IServiceCollection serviceCollection, Action<ConfigDataES> actionES, Action<ConfigDataMQ> actionMQ, IFastLogAop fastLogAop = null)
         {
             var configES = new ConfigDataES();
             var configMQ = new ConfigDataMQ();
@@ -42,7 +43,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return serviceCollection;
         }
 
-        public static IServiceCollection AddFastLog(this IServiceCollection serviceCollection, string dbFile = "db.json")
+        public static IServiceCollection AddFastLog(this IServiceCollection serviceCollection, string dbFile = "db.json", IFastLogAop fastLogAop = null)
         {
             var build = new ConfigurationBuilder();
             build.SetBasePath(Directory.GetCurrentDirectory());
@@ -53,12 +54,12 @@ namespace Microsoft.Extensions.DependencyInjection
             if (configMQ.Host == null || configES.Host == null)
                 throw new Exception(@"services.AddFastLog(a => {  })");
 
-            Init(serviceCollection, configES, configMQ);
+            Init(serviceCollection, configES, configMQ, false, fastLogAop);
 
             return serviceCollection;
         }
 
-        public static IServiceCollection AddFastLogReceive(this IServiceCollection serviceCollection, string dbFile = "db.json")
+        public static IServiceCollection AddFastLogReceive(this IServiceCollection serviceCollection, string dbFile = "db.json", IFastLogAop fastLogAop = null)
         {
             var build = new ConfigurationBuilder();
             build.SetBasePath(Directory.GetCurrentDirectory());
@@ -69,12 +70,12 @@ namespace Microsoft.Extensions.DependencyInjection
             if (configMQ.Host == null || configES.Host == null)
                 throw new Exception(@"services.AddFastLog(a => {  })");
 
-            Init(serviceCollection, configES, configMQ, true);
+            Init(serviceCollection, configES, configMQ, true, fastLogAop);
 
             return serviceCollection;
         }
 
-        public static IServiceCollection AddFastLogReceive(this IServiceCollection serviceCollection, Action<ConfigDataES> actionES, Action<ConfigDataMQ> actionMQ)
+        public static IServiceCollection AddFastLogReceive(this IServiceCollection serviceCollection, Action<ConfigDataES> actionES, Action<ConfigDataMQ> actionMQ, IFastLogAop fastLogAop = null)
         {
             var configES = new ConfigDataES();
             var configMQ = new ConfigDataMQ();
@@ -82,12 +83,12 @@ namespace Microsoft.Extensions.DependencyInjection
             actionES(configES);
             actionMQ(configMQ);
 
-            Init(serviceCollection, configES, configMQ, true);
+            Init(serviceCollection, configES, configMQ, true, fastLogAop);
 
             return serviceCollection;
         }
 
-        private static void Init(IServiceCollection serviceCollection, ConfigDataES configES, ConfigDataMQ configMQ, bool isReceive = false)
+        private static void Init(IServiceCollection serviceCollection, ConfigDataES configES, ConfigDataMQ configMQ, bool isReceive = false, IFastLogAop fastLogAop = null)
         {
             //ES
             var node = new List<Node>();
@@ -143,7 +144,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 var consumer = new EventingBasicConsumer(channe);
                 consumer.Received += (a, b) =>
                 {
-                    content = mqRabbit.ToDic(Encoding.UTF8.GetString(b.Body.ToArray()));
+                    content = FastRabbit.ToDic(Encoding.UTF8.GetString(b.Body.ToArray()));
 
                     var receive = new ReceiveContext();
                     receive.config = config;
@@ -158,6 +159,9 @@ namespace Microsoft.Extensions.DependencyInjection
             serviceCollection.AddSingleton<IFastRabbitAop>(mqAop);
             serviceCollection.AddSingleton<IFastRabbit>(mqRabbit);
             serviceCollection.AddSingleton<IFastLog, FastLog.Core.FastLog>();
+
+            if(fastLogAop != null)
+                serviceCollection.AddSingleton<IFastLogAop>(fastLogAop);
 
             ServiceContext.Init(new ServiceEngine(serviceCollection.BuildServiceProvider()));
         }

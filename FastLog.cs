@@ -59,7 +59,7 @@ namespace FastLog.Core
         {
             var data = new List<string>();
             var client = ServiceContext.Engine.Resolve<IElasticsearch>();
-            var list = client.GetList(nameof(LogTypeModel.IdxLogType).ToLower(),size);
+            var list = client.GetList(nameof(LogTypeModel.IdxLogType).ToLower(),size).List;
             list.ForEach(a =>
             {
                 data.Add(a[nameof(LogTypeModel.Name)].ToString());
@@ -67,7 +67,7 @@ namespace FastLog.Core
             return data.Distinct().ToList();
         }
 
-        public PageResult Page(string type, string title, string content, string person, int pageId = 1, int pageSize = 10, bool isWildCard = false, bool isDesc = true)
+        public EsResponse Page(string type, string title, string content, string person, int pageId = 1, int pageSize = 10, bool isWildCard = false, bool isDesc = true)
         {
             type = type ?? string.Empty;
             type = new string(type.ToLower().Where(c => !filters.Contains(c)).ToArray());
@@ -99,15 +99,15 @@ namespace FastLog.Core
                 query.Add("match_all", new Dictionary<string,object>());
 
             if (match.Count > 0)
-                query.Add("query", match);
+                query.Add("match", match);
 
             if (wildcard.Count > 0)
-                query.Add("query", match);
+                query.Add("wildcard", wildcard);
 
             return client.Page(pageSize, pageId, type, query, sort);
         }
 
-        public int Count(string type)
+        public EsResponse Count(string type)
         {
             type = type ?? string.Empty;
             type = new string(type.ToLower().Where(c => !filters.Contains(c)).ToArray());
@@ -115,7 +115,7 @@ namespace FastLog.Core
             return client.Count(type);
         }
 
-        public List<Dictionary<string, object>> GetList(string type, int size = 10)
+        public EsResponse GetList(string type, int size = 10)
         {
             type = type ?? string.Empty;
             type = new string(type.ToLower().Where(c => !filters.Contains(c)).ToArray());

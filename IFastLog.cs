@@ -14,10 +14,10 @@ namespace FastLog.Core
 
         List<string> Type(int size = 10);
 
-        List<Dictionary<string, object>> GetList(string type, int size = 10);
+        EsResponse GetList(string type, int size = 10);
 
-        int Count(string type);
+        EsResponse Count(string type);
 
-        PageResult Page(string type, string title, string content, string person, int pageId = 1, int pageSize = 10, bool isWildCard = false, bool isDesc = true);
+        EsResponse Page(string type, string title, string content, string person, int pageId = 1, int pageSize = 10, bool isWildCard = false, bool isDesc = true);
     }
 }

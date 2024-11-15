@@ -1,10 +1,12 @@
 ﻿using FastLog.Core;
+using FastLog.Core.Aop;
 using FastLog.Core.RabbitMQ.Aop;
 using FastLog.Core.RabbitMQ.Context;
 using FastLog.Core.RabbitMQ.Model;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -15,6 +17,7 @@ namespace FastRabbitMQ.Core.Repository
     {
         public void Delete(ConfigModel config)
         {
+            var logAop = ServiceContext.Engine.Resolve<IFastLogAop>();
             var conn = ServiceContext.Engine.Resolve<IConnection>();
             var aop = ServiceContext.Engine.Resolve<IFastRabbitAop>();
             try
@@ -33,6 +36,13 @@ namespace FastRabbitMQ.Core.Repository
             }
             catch (Exception ex)
             {
+                if (logAop != null)
+                {
+                    var mqContent = new MqExceptionContext();
+                    mqContent.Exception = ex;
+                    logAop.MqException(mqContent);
+                }
+
                 var context = new ExceptionContext();
                 context.ex = ex;
                 context.isDelete = true;
@@ -43,6 +53,7 @@ namespace FastRabbitMQ.Core.Repository
 
         public void Send(ConfigModel config, Dictionary<string, object> content)
         {
+            var logAop = ServiceContext.Engine.Resolve<IFastLogAop>();
             var jsonOption = new JsonSerializerOptions() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
             var conn = ServiceContext.Engine.Resolve<IConnection>();
             var aop = ServiceContext.Engine.Resolve<IFastRabbitAop>();
@@ -83,6 +94,13 @@ namespace FastRabbitMQ.Core.Repository
             }
             catch (Exception ex)
             {
+                if (logAop != null)
+                {
+                    var mqContent = new MqExceptionContext();
+                    mqContent.Exception = ex;
+                    mqContent.Content = content;
+                    logAop.MqException(mqContent);
+                }
                 var context = new ExceptionContext();
                 context.content = content;
                 context.ex = ex;
@@ -92,7 +110,7 @@ namespace FastRabbitMQ.Core.Repository
             }
         }
 
-        internal Dictionary<string, object> ToDic(string content)
+        internal static Dictionary<string, object> ToDic(string content)
         {
             var jsonOption = new JsonSerializerOptions() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
             var dic = new Dictionary<string, object>();
@@ -108,6 +126,28 @@ namespace FastRabbitMQ.Core.Repository
                 }
             }
             return dic;
+        }
+    }
+}
+
+namespace System.Collections.Generic
+{
+    public static class Dic
+    {
+        public static Object GetValue(this Dictionary<string, object> item, string key)
+        {
+            if (string.IsNullOrEmpty(key))
+                return "";
+
+            if (item == null)
+                return "";
+
+            key = item.Keys.ToList().Find(a => string.Compare(a, key, true) == 0);
+
+            if (string.IsNullOrEmpty(key))
+                return "";
+            else
+                return item[key];
         }
     }
 }

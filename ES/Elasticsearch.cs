@@ -13,37 +13,46 @@ namespace FastLog.Core.Elasticsearch
     {
         JsonSerializerOptions jsonOption = new JsonSerializerOptions() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
-        public bool Add(LogModel model)
+        public EsResponse Add(LogModel model)
         {
+            var data = new EsResponse();
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             var result = client.Index<StringResponse>(model.Type, model.Id, PostData.Serializable(model));
-            return result != null ? result.Success : false;
+            data.IsSuccess = result != null ? result.Success : false;
+            data.Exception = result?.OriginalException;
+            return data;
         }
 
-        public bool Add(LogTypeModel model)
+        public EsResponse Add(LogTypeModel model)
         {
+            var data = new EsResponse();
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             var result = client.Index<StringResponse>(model.IdxLogType, model.Id, PostData.Serializable(model));
-            return result != null ? result.Success : false;
+            data.IsSuccess = result != null ? result.Success : false;
+            data.Exception = result?.OriginalException;
+            return data;
         }
 
-        public PageResult Page(int pageSize, int pageId, string type, object query, object sort)
+        public EsResponse Page(int pageSize, int pageId, string type, object query, object sort)
         {
-            var result = new PageResult();
-            result.page.PageId = pageId;
-            result.page.PageSize = pageSize;
+            var result = new EsResponse();
+            result.PageResult.Page.PageId = pageId;
+            result.PageResult.Page.PageSize = pageSize;
 
             var data = new Dictionary<string, object>();
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             StringResponse page;
+
+            var sd = JsonSerializer.Serialize(new { size = pageSize, from = (pageId - 1) * pageSize, query, sort = sort });
 
             if (!string.IsNullOrEmpty(type))
                 page = client.Search<StringResponse>(type, PostData.Serializable(new { size = pageSize, from = (pageId - 1) * pageSize, query = query, sort = sort }));
             else
                 page = client.Search<StringResponse>(PostData.Serializable(new { size = pageSize, from = (pageId - 1) * pageSize, query = query, sort = sort }));
 
-            if (page.Success)
+            if (page?.Success == true)
             {
+                result.IsSuccess = true;
                 var body = page.Body;
                 if (IsChinese(page.Body))
                     body = Uri.UnescapeDataString(page.Body);
@@ -52,27 +61,30 @@ namespace FastLog.Core.Elasticsearch
 
                 list.hits.hits.ForEach(a =>
                 {
-                    result.list.Add(a._source);
+                    result.PageResult.List.Add(a._source);
                 });
 
-                result.page.TotalRecord = list.hits.total.value;
+                result.PageResult.Page.TotalRecord = list.hits.total.value;
             }
-
-            result.page.TotalPage = result.page.TotalRecord / pageSize + 1;
-
-            if ((result.page.TotalRecord % result.page.PageSize) == 0)
-                result.page.TotalPage = result.page.TotalRecord / result.page.PageSize;
             else
-                result.page.TotalPage = (result.page.TotalRecord / result.page.PageSize) + 1;
+                result.Exception = page?.OriginalException;
 
-            if (result.page.PageId > result.page.TotalPage)
-                result.page.PageId = result.page.TotalPage;
+            result.PageResult.Page.TotalPage = result.PageResult.Page.TotalRecord / pageSize + 1;
+
+            if ((result.PageResult.Page.TotalRecord % result.PageResult.Page.PageSize) == 0)
+                result.PageResult.Page.TotalPage = result.PageResult.Page.TotalRecord / result.PageResult.Page.PageSize;
+            else
+                result.PageResult.Page.TotalPage = (result.PageResult.Page.TotalRecord / result.PageResult.Page.PageSize) + 1;
+
+            if (result.PageResult.Page.PageId > result.PageResult.Page.TotalPage)
+                result.PageResult.Page.PageId = result.PageResult.Page.TotalPage;
 
             return result;
         }
 
-        public int Count(string type)
+        public EsResponse Count(string type)
         {
+            var data = new EsResponse();
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             StringResponse page;
             if (!string.IsNullOrEmpty(type))
@@ -80,78 +92,101 @@ namespace FastLog.Core.Elasticsearch
             else
                 page = client.Search<StringResponse>(PostData.Empty);
 
+            data.IsSuccess = page.Success;
+            data.Exception = page.OriginalException;
+
             if (page.Success)
             {
                 var list = JsonSerializer.Deserialize<EsResult>(page.Body, jsonOption);
 
-                return list.hits.total.value;
+                data.Count = list.hits.total.value;
             }
             else
-                return 0;
+                data.Count = 0;
+
+            return data;
         }
 
-        public bool delete(string type, object query)
+        public EsResponse delete(string type, object query)
         {
+            var data = new EsResponse();
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             var result = client.DeleteByQuery<StringResponse>(type, PostData.Serializable(new { query = query }));
-            return result != null ? result.Success : false;
+            data.IsSuccess = result != null ? result.Success : false;
+            data.Exception = result?.OriginalException;
+            return data;
         }
 
-        public bool delete(string type)
+        public EsResponse delete(string type)
         {
+            var data = new EsResponse();
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             var result = client.DeleteByQuery<StringResponse>(type, PostData.Serializable(new { query = new { match_all = new { } } }));
-            return result != null ? result.Success : false;
+            data.IsSuccess = result != null ? result.Success : false;
+            data.Exception = result?.OriginalException;
+            return data; ;
         }
 
-        public bool delete(string type, string id)
+        public EsResponse delete(string type, string id)
         {
+            var data = new EsResponse();
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             var result = client.Delete<StringResponse>(type, id);
-            return result != null ? result.Success : false;
+            data.IsSuccess = result != null ? result.Success : false;
+            data.Exception = result?.OriginalException;
+            return data;
         }
 
-        public bool delete(string type, List<string> _id)
+        public EsResponse delete(string type, List<string> _id)
         {
+            var data = new EsResponse();
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             var result = client.DeleteByQuery<StringResponse>(type, PostData.Serializable(new { query = new { terms = new { _id } } }));
-            return result != null ? result.Success : false;
+            data.IsSuccess = result != null ? result.Success : false;
+            data.Exception = result?.OriginalException;
+            return data;
         }
 
-        public bool delete(string type, PostData body)
+        public EsResponse delete(string type, PostData body)
         {
+            var data = new EsResponse();
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             var result = client.DeleteByQuery<StringResponse>(type, body);
-            return result != null ? result.Success : false;
+            data.IsSuccess = result != null ? result.Success : false;
+            data.Exception = result?.OriginalException;
+            return data;
         }
 
-        public List<Dictionary<string, object>> GetList(string type, int size = 10)
+        public EsResponse GetList(string type, int size = 10)
         {
+            var result = new EsResponse();
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
-            StringResponse result;
+            StringResponse stringResponse;
             if (!string.IsNullOrEmpty(type))
-                result = client.Search<StringResponse>(type, PostData.Serializable(new { query = new { match_all = new { } }, size = size }));
+                stringResponse = client.Search<StringResponse>(type, PostData.Serializable(new { query = new { match_all = new { } }, size = size }));
             else
-                result = client.Search<StringResponse>(PostData.Serializable(new { query = new { match_all = new { } }, size = size }));
-            if (result.Success)
+                stringResponse = client.Search<StringResponse>(PostData.Serializable(new { query = new { match_all = new { } }, size = size }));
+            if (stringResponse.Success)
             {
-                var body = result.Body;
-                if (IsChinese(result.Body))
-                    body = Uri.UnescapeDataString(result.Body);
+                result.IsSuccess = true;
+                var body = stringResponse.Body;
+                if (IsChinese(stringResponse.Body))
+                    body = Uri.UnescapeDataString(stringResponse.Body);
 
-                var data = new List<Dictionary<string, object>>();
                 var list = JsonSerializer.Deserialize<EsResult>(body, jsonOption);
                 list.hits.hits.ForEach(a =>
                 {
-                    data.Add(a._source);
+                    result.List.Add(a._source);
                 });
 
-                return data;
+                return result;
             }
             else
-                return new List<Dictionary<string, object>>();
+            {
+                result.Exception = stringResponse.OriginalException;
+                return result;
+            }
         }
-
 
         private static bool IsChinese(string text)
         {

@@ -7,24 +7,24 @@ namespace FastLog.Core.Elasticsearch
 {
     internal interface IElasticsearch
     {
-        bool Add(LogModel model);
+        EsResponse Add(LogModel model);
 
-        bool Add(LogTypeModel model);
+        EsResponse Add(LogTypeModel model);
 
-        bool delete(string type, object query);
+        EsResponse delete(string type, object query);
 
-        bool delete(string type);
+        EsResponse delete(string type);
 
-        bool delete(string type, string id);
+        EsResponse delete(string type, string id);
 
-        bool delete(string type, List<string> id);
+        EsResponse delete(string type, List<string> id);
 
-        bool delete(string type, PostData body);
+        EsResponse delete(string type, PostData body);
 
-        PageResult Page(int pageSize, int pageId, string index, object query, object sort);
+        EsResponse Page(int pageSize, int pageId, string index, object query, object sort);
 
-        int Count(string type);
+        EsResponse Count(string type);
 
-        List<Dictionary<string, object>> GetList(string type, int size = 10);
+        EsResponse GetList(string type, int size = 10);
     }
 }
