@@ -1,0 +1,17 @@
+{
+  "RabbitMQ": {
+    "Host": "127.0.0.1",
+    "PassWord": "guest",
+    "UserName": "guest",
+    "QueueName": "Log",
+    "ExchangeName": "LogBox",
+    "RouteKey": "LogKey",
+    "Port": 5672,
+    "VirtualHost": "/"
+  },
+  "Elasticsearch": {
+    "Host": [ "http://127.0.0.1:9200" ],
+    "UserName": "elastic",
+    "PassWord": "123456"
+  }
+}

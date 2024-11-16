@@ -18,6 +18,6 @@ namespace FastLog.Core
 
         EsResponse Count(string type);
 
-        EsResponse Page(string type, string title, string content, string person, int pageId = 1, int pageSize = 10, bool isWildCard = false, bool isDesc = true);
+        EsResponse Page(LogModel model, int pageId = 1, int pageSize = 10, bool isWildCard = false, bool isDesc = true);
     }
 }

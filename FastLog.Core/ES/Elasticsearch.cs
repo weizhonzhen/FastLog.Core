@@ -43,8 +43,6 @@ namespace FastLog.Core.Elasticsearch
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             StringResponse page;
 
-            var sd = JsonSerializer.Serialize(new { size = pageSize, from = (pageId - 1) * pageSize, query, sort = sort });
-
             if (!string.IsNullOrEmpty(type))
                 page = client.Search<StringResponse>(type, PostData.Serializable(new { size = pageSize, from = (pageId - 1) * pageSize, query = query, sort = sort }));
             else

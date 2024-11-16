@@ -1,0 +1,35 @@
+﻿@inherits LayoutComponentBase
+@inject FastLog.Core.IFastLog log;
+
+<PageTitle>FastLogWeb.Core</PageTitle>
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4" style="color:blue;justify-content:normal;">
+            共 @total 条，共 @type 种类型
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+@code{
+    private int type;
+    private int total;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        type = log.Type().Count;
+        log.Type().ForEach(a =>
+        {
+            total += log.Count(a).Count;
+        });
+    }
+}

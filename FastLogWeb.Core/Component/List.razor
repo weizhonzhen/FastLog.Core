@@ -1,0 +1,59 @@
+﻿@inject IFastLog log;
+@inject IJSRuntime js
+@using FastLogWeb.Core.Model;
+<table id="logTable" class="table table-bordered TableList">
+    <thead style="background-color:#cacaca;">
+        <tr>
+            <td align="center" width="10%">类型</td>
+            <td align="center" width="15%">标题</td>
+            <td align="center" width="35%">内容</td>
+            <td align="center" width="10%">时间</td>
+            <td align="center" width="10%">IP</td>
+            <td align="center" width="10%">操作人</td>
+            <td align="center" width="10%">操作</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in QueryModel.PageResult.List)
+        {
+            var content = item.GetValue("content")?.ToString() ?? string.Empty;
+            <tr>
+                <td align="center" width="10%">@item.GetValue("type")</td>
+                <td align="center" width="15%">@item.GetValue("title")</td>
+                <td align="center" width="35%">@(content.Length > 30 ? $"{content.Substring(0, 30)}..." : content)</td>
+                <td align="center" width="10%">@item.GetValue("ip")</td>
+                <td align="center" width="10%">@item.GetValue("ip")</td>
+                <td align="center" width="10%">@item.GetValue("person")</td>
+                <td align="center" width="10%">
+                    <button class="btn btn-primary btn-sm">查看</button>
+                    <button class="btn btn-primary btn-sm" @onclick="()=>Delete(item)">删除</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private bool firstRender { get; set; }
+
+    [Parameter]
+    public QueryModel QueryModel { get; set; } = new QueryModel();
+
+    [Parameter]
+    public EventCallback<QueryModel> QueryModelChanged { get; set; }
+
+    private void Delete(Dictionary<string, object> dic)
+    {
+        log.Delete(dic.GetValue("type").ToString(), string.Empty, dic.GetValue("id").ToString());
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!this.firstRender)
+        {
+            js.InvokeVoidAsync("Load");
+            this.firstRender = true;
+        }
+        return base.OnAfterRenderAsync(firstRender);
+    }
+}

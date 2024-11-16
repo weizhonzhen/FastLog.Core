@@ -1,0 +1,112 @@
+﻿@page "/"
+@inject IFastLog log;
+@inject IJSRuntime js
+@using FastLogWeb.Core.Component;
+@using FastLogWeb.Core.Model;
+<section class="content">
+    <div class="form-inline">
+        <div class="form-group">
+            <div class="form-group" style="width:200px">
+                <label>类型</label>
+                <select @bind="QueryModel.Type" class="form-control" style="width:160px;">
+                    <option value="">请选择</option>
+                    @foreach (var item in log.Type())
+                    {
+                        <option value="@item">@item</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group" style="width:160px">
+                <label>标题</label>
+                <input type="text" id="Title" @bind="QueryModel.Title" style="width:120px;" class="form-control" />
+            </div>
+            <div class="form-group" style="width:160px">
+                <label>内容</label>
+                <input type="text" @bind="QueryModel.Content" style="width:120px;" class="form-control" />
+            </div>
+            <div class="form-group" style="width:160px">
+                <label>时间</label>
+                <input type="text" id="DateTime" style="width:120px;" class="form-control" />
+            </div>
+            <div class="form-group" style="width:170px">
+                <label>操作人</label>
+                <input type="text" @bind="QueryModel.Person" style="width:120px;" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <button @onclick="Query" class="btn btn-primary">查询</button>
+        </div>
+    </div>
+    <div style="margin-top:20px;" class="box-body table-responsive"> 
+        <List @bind-QueryModel="QueryModel" @bind-QueryModel:event="QueryModelChanged" />
+        <Page @bind-QueryModel="QueryModel" @bind-QueryModel:event="QueryModelChanged" />
+    </div>
+</section>
+@code {
+    private static QueryModel QueryModel { get; set; } = new QueryModel();
+    private async void Query()
+    {
+        QueryModel.PageId = 1;
+        QueryModel.PageResult = log.Page(GetLogModel, QueryModel.PageId, QueryModel.PageSize, true).PageResult;
+    }
+
+    protected override void OnInitialized()
+    {
+        QueryModel.PageResult = log.Page(GetLogModel, QueryModel.PageId, QueryModel.PageSize, true).PageResult;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await js.InvokeVoidAsync("Load");
+    }
+
+    private LogModel GetLogModel
+    {
+        get
+        {
+            var logModel = new LogModel();
+            logModel.Type = QueryModel.Type;
+            logModel.Content = QueryModel.Content;
+            logModel.Title = QueryModel.Title;
+            logModel.Person = QueryModel.Person;
+            logModel.DateTime = QueryModel.DateTime;
+            return logModel;
+        }
+    }
+
+    [JSInvokable]
+    public static void GetDateTime(string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+            QueryModel.DateTime = Convert.ToDateTime(value.ToString());
+        else
+            QueryModel.DateTime = DateTime.MinValue;
+    }
+}
+<script>
+    $(function () {
+        laydate.render({ elem: '#DateTime', type: 'date', trigger: "click",
+        done : function (val) { 
+            DotNet.invokeMethodAsync("FastLogWeb.Core","GetDateTime",val);
+        }});
+        $("#logTable tbody tr").first().click();
+        $.TableClickColor("logTable");
+    });
+
+    function Load()
+    {
+        $("#logTable tbody tr").first().click();
+        $.TableClickColor("logTable");
+    }
+
+    function PageNum(id) {
+        $(".pagination li a").each(function () {
+            if ($(this).attr("aria-label") == undefined)
+                return;
+            if ($(this).is(id))
+                $(this).parent().addClass("active");
+            else
+                $(this).parent().removeClass("active");
+        });
+    }
+</script>

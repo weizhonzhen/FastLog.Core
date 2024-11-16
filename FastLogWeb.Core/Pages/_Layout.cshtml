@@ -1,0 +1,22 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+@namespace FastLogWeb.Core.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link href="/css/site.css" rel="stylesheet" />
+    <link href="FastLogWeb.Core.styles.css" rel="stylesheet" />
+    <script src="/js/jquery-min.js"></script>
+    <script src="/js/Extend.js"></script>
+    <script src="/js/laydate/laydate.js"></script>
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+</head>
+<body>
+    @RenderBody()
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>
