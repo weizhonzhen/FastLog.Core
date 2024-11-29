@@ -1,0 +1,51 @@
+﻿@inject IJSRuntime js
+@inject IMemoryCache cache
+<table id="logTable" class="table table-bordered TableList">
+    <tbody>
+        <tr>
+            <td align="right" width="20%">类型：</td>
+            <td>@Data.GetValue("type")</td>
+        </tr>
+        <tr>
+            <td align="right" width="20%">标题：</td>
+            <td>@Data.GetValue("title")</td>
+        </tr>
+        <tr>
+            <td align="right" width="20%">时间：</td>
+            <td>@Data.GetValue("datetime")</td>
+        </tr>
+        <tr>
+            <td align="right" width="20%">IP：</td>
+            <td>@Data.GetValue("ip")</td>
+        </tr>
+        <tr>
+            <td align="right" width="20%">操作人：</td>
+            <td>@Data.GetValue("person")</td>
+        </tr>
+        <tr>
+            <td colspan="2">内容：</td>
+        </tr>
+        <tr>
+            <td colspan="2">@Data.GetValue("content")</td>
+        </tr>
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public Dictionary<string, object> Data { get; set; }
+
+    [Parameter]
+    public EventCallback<Dictionary<string, object>> DataChanged { get; set; }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        var isShow = false;
+        cache.TryGetValue("IsShow", out isShow);
+        if (isShow)
+        {
+            js.InvokeVoidAsync("Option", new object[] { Data.GetValue("title").ToString() });
+            cache.Set("IsShow", false);
+        }
+    }
+}

@@ -1,11 +1,13 @@
 global using FastLog.Core;
 global using FastLog.Core.ES.Model;
 global using FastLog.Core.Model;
+global using Microsoft.Extensions.Caching.Memory;
 using FastLog.Core.Aop;
 using Microsoft.AspNetCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
+builder.Services.AddMemoryCache();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddFastLogReceive("db.json", new FastLogAop());
 

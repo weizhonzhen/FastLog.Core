@@ -109,4 +109,15 @@
                 $(this).parent().removeClass("active");
         });
     }
+
+    function Option(title)
+    {
+        layer.open({
+            type: 1,
+            area: ['750px', '660px'],
+            fixed: true, maxmin: false,
+            content:  $("#Option").clone().html(),
+            title: "详情 - " + title
+        });   
+    }
 </script>
