@@ -21,6 +21,7 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         private static string mqKey = "RabbitMQ";
         private static string esKey = "Elasticsearch";
+        private static string receiveQueueName = "LogReceive";
 
         internal static ConfigModel config = new ConfigModel
         {
@@ -94,7 +95,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var node = new List<Node>();
             configES.Host.ForEach(a => { node.Add(new Node(new Uri(a))); });
             var pool = new StaticConnectionPool(node);
-            var conn = new ConnectionConfiguration(pool);
+            var conn = new ConnectionConfiguration(pool).EnableHttpCompression().ServerCertificateValidationCallback((sender, certificate, chain, sslPolicyErrors) => true);
             conn.BasicAuthentication(configES.UserName, configES.PassWord);
             var client = new ElasticLowLevelClient(conn);
 
@@ -123,47 +124,76 @@ namespace Microsoft.Extensions.DependencyInjection
             //MQ Receive           
             var mqRabbit = new FastRabbit();
             var mqAop = new FastRabbitAop();
-            if (isReceive)
+
+            //RabbitMQ send by receive aop
+            if (fastLogAop != null && isReceive == false)
             {
-                var content = new Dictionary<string, object>();
-                var channe = mqConn.CreateModel();
-                Dictionary<string, object> arguments = null;
-
-                if (config.MaxPriority != null)
-                    arguments = new Dictionary<string, object>
-                        {
-                            { "x-max-priority", config.MaxPriority.Value }
-                        };
-
-                channe.QueueDeclare(config.QueueName, config.IsDurable, config.IsExclusive, config.IsAutoDelete, arguments);
-                channe.ExchangeDeclare(config.Exchange.ExchangeName, config.Exchange.ExchangeType.ToString(), config.IsDurable, config.IsAutoDelete);
-                channe.QueueBind(config.QueueName, config.Exchange.ExchangeName, config.Exchange.RouteKey);
-
-                if (!config.IsAutoAsk)
-                    channe.BasicQos(0, 1, true);
-                var consumer = new EventingBasicConsumer(channe);
-                consumer.Received += (a, b) =>
+                var receiveConfig = new ConfigModel()
                 {
-                    content = FastRabbit.ToDic(Encoding.UTF8.GetString(b.Body.ToArray()));
-
-                    var receive = new ReceiveContext();
-                    receive.config = config;
-                    receive.content = content;
-                    mqAop.Receive(receive);
-
-                    if (!config.IsAutoAsk)
-                        channe.BasicAck(b.DeliveryTag, false);
+                    QueueName = receiveQueueName,
+                    IsAutoAsk = true,
+                    IsDurable = true,
+                    Exchange = new Exchange
+                    {
+                        ExchangeType = FastLog.Core.RabbitMQ.Model.ExchangeType.direct,
+                        RouteKey = configMQ.RouteKey,
+                        ExchangeName = configMQ.ExchangeName
+                    }
                 };
-                channe.BasicConsume(config.QueueName, config.IsAutoAsk, consumer);
+
+                MqReceive(mqConn, mqAop, receiveConfig, fastLogAop);
             }
+
+            if (isReceive)
+                MqReceive(mqConn, mqAop, config, fastLogAop, true);
+
             serviceCollection.AddSingleton<IFastRabbitAop>(mqAop);
             serviceCollection.AddSingleton<IFastRabbit>(mqRabbit);
             serviceCollection.AddSingleton<IFastLog, FastLog.Core.FastLog>();
 
-            if(fastLogAop != null)
+            if (fastLogAop != null)
                 serviceCollection.AddSingleton<IFastLogAop>(fastLogAop);
 
             ServiceContext.Init(new ServiceEngine(serviceCollection.BuildServiceProvider()));
+        }
+
+        private static void MqReceive(RabbitMQ.Client.IConnection mqConn, FastRabbitAop mqAop, ConfigModel config, IFastLogAop fastLogAop = null, bool isSendReceive = false)
+        {
+            var content = new Dictionary<string, object>();
+            var channe = mqConn.CreateModel();
+            Dictionary<string, object> arguments = null;
+
+            if (config.MaxPriority != null)
+                arguments = new Dictionary<string, object>
+                        {
+                            { "x-max-priority", config.MaxPriority.Value }
+                        };
+
+            channe.QueueDeclare(config.QueueName, config.IsDurable, config.IsExclusive, config.IsAutoDelete, arguments);
+            channe.ExchangeDeclare(config.Exchange.ExchangeName, config.Exchange.ExchangeType.ToString(), config.IsDurable, config.IsAutoDelete);
+            channe.QueueBind(config.QueueName, config.Exchange.ExchangeName, config.Exchange.RouteKey);
+
+            if (!config.IsAutoAsk)
+                channe.BasicQos(0, 1, true);
+            var consumer = new EventingBasicConsumer(channe);
+            consumer.Received += (a, b) =>
+            {
+                content = FastRabbit.ToDic(Encoding.UTF8.GetString(b.Body.ToArray()));
+
+                var receive = new ReceiveContext();
+                receive.config = config;
+                receive.content = content;
+
+                if (isSendReceive && fastLogAop != null)
+                    fastLogAop.MqReceive(new MqReceiveContext { Content = content, QueueName = config.QueueName });
+
+                if (!isSendReceive)
+                    mqAop.Receive(receive);
+
+                if (!config.IsAutoAsk)
+                    channe.BasicAck(b.DeliveryTag, false);
+            };
+            channe.BasicConsume(config.QueueName, config.IsAutoAsk, consumer);
         }
     }
 }

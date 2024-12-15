@@ -23,6 +23,7 @@ namespace FastLog.Core.RabbitMQ.Aop
             if (logAop != null)
             {
                 var reContent = new MqReceiveContext();
+
                 reContent.Content = context.content;
                 logAop.MqReceive(reContent);
             }
@@ -40,6 +41,7 @@ namespace FastLog.Core.RabbitMQ.Aop
                         var esContext = new EsAddContext();
                         esContext.Content = context.content;
                         esContext.IsSuccess = result;
+                        esContext.QueueName = context.config.QueueName;
                         logAop.EsAdd(esContext);
                     }
                 }
@@ -71,6 +73,7 @@ namespace FastLog.Core.RabbitMQ.Aop
                 {
                     var esContext = new EsRemoveContext();
                     esContext.Content = context.content;
+                    esContext.QueueName = context.config.QueueName;
                     esContext.IsSuccess = isSuccess;
                     logAop.EsRemove(esContext);
                 }

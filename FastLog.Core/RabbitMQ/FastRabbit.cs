@@ -40,6 +40,7 @@ namespace FastRabbitMQ.Core.Repository
                 {
                     var mqContent = new MqExceptionContext();
                     mqContent.Exception = ex;
+                    mqContent.QueueName = config.QueueName;
                     logAop.MqException(mqContent);
                 }
 
@@ -99,6 +100,7 @@ namespace FastRabbitMQ.Core.Repository
                     var mqContent = new MqExceptionContext();
                     mqContent.Exception = ex;
                     mqContent.Content = content;
+                    mqContent.QueueName = config.QueueName;
                     logAop.MqException(mqContent);
                 }
                 var context = new ExceptionContext();
