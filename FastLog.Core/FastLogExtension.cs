@@ -187,8 +187,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 if (isSendReceive && fastLogAop != null)
                     fastLogAop.MqReceive(new MqReceiveContext { Content = content, QueueName = config.QueueName });
 
-                if (!isSendReceive)
-                    mqAop.Receive(receive);
+                mqAop.Receive(receive);
 
                 if (!config.IsAutoAsk)
                     channe.BasicAck(b.DeliveryTag, false);
