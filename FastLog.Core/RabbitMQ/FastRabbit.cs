@@ -134,7 +134,7 @@ namespace FastRabbitMQ.Core.Repository
 
 namespace System.Collections.Generic
 {
-    public static class Dic
+    internal static class Dic
     {
         public static Object GetValue(this Dictionary<string, object> item, string key)
         {
