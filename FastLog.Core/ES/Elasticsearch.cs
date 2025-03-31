@@ -11,12 +11,12 @@ namespace FastLog.Core.Elasticsearch
 {
     internal class Elasticsearch : IElasticsearch
     {
-        JsonSerializerOptions jsonOption = new JsonSerializerOptions() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+        private ElasticLowLevelClient client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
+        private JsonSerializerOptions jsonOption = new JsonSerializerOptions() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
         public EsResponse Add(LogModel model)
         {
             var data = new EsResponse();
-            var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             var result = client.Index<StringResponse>(model.Type, model.Id, PostData.Serializable(model));
             data.IsSuccess = result != null ? result.Success : false;
             data.Exception = result?.OriginalException;
@@ -26,7 +26,6 @@ namespace FastLog.Core.Elasticsearch
         public EsResponse Add(LogTypeModel model)
         {
             var data = new EsResponse();
-            var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             var result = client.Index<StringResponse>(model.IdxLogType, model.Id, PostData.Serializable(model));
             data.IsSuccess = result != null ? result.Success : false;
             data.Exception = result?.OriginalException;
@@ -40,7 +39,6 @@ namespace FastLog.Core.Elasticsearch
             result.PageResult.Page.PageSize = pageSize;
 
             var data = new Dictionary<string, object>();
-            var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             StringResponse page;
 
             if (!string.IsNullOrEmpty(type))
@@ -83,7 +81,6 @@ namespace FastLog.Core.Elasticsearch
         public EsResponse Count(string type)
         {
             var data = new EsResponse();
-            var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             StringResponse page;
             if (!string.IsNullOrEmpty(type))
                 page = client.Search<StringResponse>(type, PostData.Empty);
@@ -108,7 +105,6 @@ namespace FastLog.Core.Elasticsearch
         public EsResponse delete(string type, object query)
         {
             var data = new EsResponse();
-            var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             var result = client.DeleteByQuery<StringResponse>(type, PostData.Serializable(new { query = query }));
             data.IsSuccess = result != null ? result.Success : false;
             data.Exception = result?.OriginalException;
@@ -118,7 +114,6 @@ namespace FastLog.Core.Elasticsearch
         public EsResponse delete(string type)
         {
             var data = new EsResponse();
-            var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             var result = client.DeleteByQuery<StringResponse>(type, PostData.Serializable(new { query = new { match_all = new { } } }));
             data.IsSuccess = result != null ? result.Success : false;
             data.Exception = result?.OriginalException;
@@ -128,7 +123,6 @@ namespace FastLog.Core.Elasticsearch
         public EsResponse delete(string type, string id)
         {
             var data = new EsResponse();
-            var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             var result = client.Delete<StringResponse>(type, id);
             data.IsSuccess = result != null ? result.Success : false;
             data.Exception = result?.OriginalException;
@@ -138,7 +132,6 @@ namespace FastLog.Core.Elasticsearch
         public EsResponse delete(string type, List<string> _id)
         {
             var data = new EsResponse();
-            var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             var result = client.DeleteByQuery<StringResponse>(type, PostData.Serializable(new { query = new { terms = new { _id } } }));
             data.IsSuccess = result != null ? result.Success : false;
             data.Exception = result?.OriginalException;
@@ -158,7 +151,6 @@ namespace FastLog.Core.Elasticsearch
         public EsResponse GetList(string type, int size = 10)
         {
             var result = new EsResponse();
-            var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
             StringResponse stringResponse;
             if (!string.IsNullOrEmpty(type))
                 stringResponse = client.Search<StringResponse>(type, PostData.Serializable(new { query = new { match_all = new { } }, size = size }));
@@ -188,7 +180,7 @@ namespace FastLog.Core.Elasticsearch
 
         private static bool IsChinese(string text)
         {
-            return Regex.IsMatch(text, @"[\u4e00-\u9fff]");
+            return Regex.IsMatch(text, @"[\u4e00-\u9fff\u3400 -\u4DBF\u20000 -\u2A6DF]");
         }
     }
 }
