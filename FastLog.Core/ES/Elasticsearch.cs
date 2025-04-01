@@ -48,7 +48,7 @@ namespace FastLog.Core.Elasticsearch
 
             if (page?.Success == true)
             {
-                result.IsSuccess = true;
+                result.PageResult.IsSuccess = true;
                 var body = page.Body;
                 if (IsChinese(page.Body))
                     body = Uri.UnescapeDataString(page.Body);
@@ -63,7 +63,7 @@ namespace FastLog.Core.Elasticsearch
                 result.PageResult.Page.TotalRecord = list.hits.total.value;
             }
             else
-                result.Exception = page?.OriginalException;
+                result.PageResult.Exception = page?.OriginalException;
 
             result.PageResult.Page.TotalPage = result.PageResult.Page.TotalRecord / pageSize + 1;
 
@@ -102,7 +102,7 @@ namespace FastLog.Core.Elasticsearch
             return data;
         }
 
-        public EsResponse delete(string type, object query)
+        public EsResponse Delete(string type, object query)
         {
             var data = new EsResponse();
             var result = client.DeleteByQuery<StringResponse>(type, PostData.Serializable(new { query = query }));
@@ -111,7 +111,7 @@ namespace FastLog.Core.Elasticsearch
             return data;
         }
 
-        public EsResponse delete(string type)
+        public EsResponse Delete(string type)
         {
             var data = new EsResponse();
             var result = client.DeleteByQuery<StringResponse>(type, PostData.Serializable(new { query = new { match_all = new { } } }));
@@ -120,7 +120,7 @@ namespace FastLog.Core.Elasticsearch
             return data; ;
         }
 
-        public EsResponse delete(string type, string id)
+        public EsResponse Delete(string type, string id)
         {
             var data = new EsResponse();
             var result = client.Delete<StringResponse>(type, id);
@@ -129,7 +129,7 @@ namespace FastLog.Core.Elasticsearch
             return data;
         }
 
-        public EsResponse delete(string type, List<string> _id)
+        public EsResponse Delete(string type, List<string> _id)
         {
             var data = new EsResponse();
             var result = client.DeleteByQuery<StringResponse>(type, PostData.Serializable(new { query = new { terms = new { _id } } }));
@@ -138,7 +138,7 @@ namespace FastLog.Core.Elasticsearch
             return data;
         }
 
-        public EsResponse delete(string type, PostData body)
+        public EsResponse Delete(string type, PostData body)
         {
             var data = new EsResponse();
             var client = ServiceContext.Engine.Resolve<ElasticLowLevelClient>();
