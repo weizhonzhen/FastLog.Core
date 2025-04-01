@@ -61,13 +61,13 @@ namespace FastLog.Core.RabbitMQ.Aop
                     return;
                 var list = log.Id.Split(',').ToList();
                 if (!string.IsNullOrEmpty(log.Id) && list.Count == 1)
-                    isSuccess = client.delete(log.Type, log.Id).IsSuccess;
+                    isSuccess = client.Delete(log.Type, log.Id).IsSuccess;
                 if (!string.IsNullOrEmpty(log.Id) && list.Count > 1)
-                    isSuccess = client.delete(log.Type, list).IsSuccess;
+                    isSuccess = client.Delete(log.Type, list).IsSuccess;
                 if (!string.IsNullOrEmpty(log.Title))
-                    isSuccess = client.delete(log.Type, new { match = new { Title = log.Title } }).IsSuccess;
+                    isSuccess = client.Delete(log.Type, new { match = new { Title = log.Title } }).IsSuccess;
                 if (string.IsNullOrEmpty(log.Title) && string.IsNullOrEmpty(log.Id))
-                    isSuccess = client.delete(log.Type).IsSuccess;
+                    isSuccess = client.Delete(log.Type).IsSuccess;
 
                 if (logAop != null)
                 {
