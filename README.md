@@ -50,3 +50,5 @@ public class FastLogAop : IFastLogAop
 }
 ```
 
+
+![](https://github.com/weizhonzhen/FastLog.Core/blob/main/img.png)
