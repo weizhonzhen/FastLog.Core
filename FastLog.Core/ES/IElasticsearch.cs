@@ -11,15 +11,15 @@ namespace FastLog.Core.Elasticsearch
 
         EsResponse Add(LogTypeModel model);
 
-        EsResponse delete(string type, object query);
+        EsResponse Delete(string type, object query);
 
-        EsResponse delete(string type);
+        EsResponse Delete(string type);
 
-        EsResponse delete(string type, string id);
+        EsResponse Delete(string type, string id);
 
-        EsResponse delete(string type, List<string> id);
+        EsResponse Delete(string type, List<string> id);
 
-        EsResponse delete(string type, PostData body);
+        EsResponse Delete(string type, PostData body);
 
         EsResponse Page(int pageSize, int pageId, string index, object query, object sort);
 

@@ -43,3 +43,24 @@
         }
     }
 }
+
+
+
+namespace System.Collections.Generic
+{
+    internal static class Dic
+    {
+        public static Object GetValue(this Dictionary<string, object> item, string key)
+        {
+            if (string.IsNullOrEmpty(key))
+                return string.Empty;
+
+            key = item.Keys.ToList().Find(a => string.Compare(a, key, true) == 0);
+
+            if (string.IsNullOrEmpty(key))
+                return string.Empty;
+            else
+                return item[key];
+        }
+    }
+}
