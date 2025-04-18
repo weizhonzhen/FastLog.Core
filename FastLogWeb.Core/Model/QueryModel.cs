@@ -55,6 +55,9 @@ namespace System.Collections.Generic
             if (string.IsNullOrEmpty(key))
                 return string.Empty;
 
+            if(item == null)
+                return string.Empty;
+
             key = item.Keys.ToList().Find(a => string.Compare(a, key, true) == 0);
 
             if (string.IsNullOrEmpty(key))

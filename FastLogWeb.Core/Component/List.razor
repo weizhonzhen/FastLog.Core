@@ -51,6 +51,17 @@
     private void Delete(Dictionary<string, object> dic)
     {
         log.Delete(dic.GetValue("type").ToString(), string.Empty, dic.GetValue("id").ToString());
+
+        var type = log.Type().Count;
+        var total = 0;
+        log.Type().ForEach(a =>
+        {
+            total += log.Count(a).Count;
+        });
+
+        total = total - 1;
+
+        js.InvokeVoidAsync("ReFlush", new object[] { total.ToString(), type.ToString() });
     }
 
     private async Task Option(Dictionary<string,object> dic)
