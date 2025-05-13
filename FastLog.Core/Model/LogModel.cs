@@ -9,16 +9,22 @@ namespace FastLog.Core.Model
         /// </summary>
         public string Type { get; set; }
 
-        public string Title { get; set; }
+        [Column(type = "keyword")]
+        public string title { get; set; }
 
-        public string Content { get; set; }
+        [Column(type = "keyword")]
+        public string content { get; set; }
 
-        public string Person { get; set; }
+        [Column(type = "keyword")]
+        public string person { get; set; }
 
-        public DateTime DateTime { get; set; }
+        [Column(type = "keyword")]
+        public DateTime dateTime { get; set; }
 
-        public string Ip { get; set; }
+        [Column(type = "keyword")]
+        public string ip { get; set; }
 
-        public string Id { get; internal set; } = Guid.NewGuid().ToString();
+        [Column(type = "keyword")]
+        public string id { get; internal set; } = Guid.NewGuid().ToString();
     }
 }

@@ -26,5 +26,7 @@ namespace FastLog.Core.Elasticsearch
         EsResponse Count(string type);
 
         EsResponse GetList(string type, int size = 10);
+
+        EsResponse Create<T>(string index);
     }
 }

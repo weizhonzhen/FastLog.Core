@@ -30,9 +30,9 @@ namespace FastLog.Core
             var model = new LogModel();
             var dic = new Dictionary<string, object>();
 
-            model.Title = title;
+            model.title = title;
             model.Type = type;
-            model.Id = id;
+            model.id = id;
 
             dic.Add("Delete", model);
 
@@ -47,9 +47,9 @@ namespace FastLog.Core
             var model = new LogModel();
             var dic = new Dictionary<string, object>();
 
-            model.Title = title;
+            model.title = title;
             model.Type = type;
-            model.Id = string.Join(",", id);
+            model.id = string.Join(",", id);
 
             dic.Add("Delete", model);
 
@@ -77,27 +77,27 @@ namespace FastLog.Core
             var wildcard = new Dictionary<string, object>();
             var match = new Dictionary<string, object>();
             object sort = new[] { new { DateTime = new { order = isDesc ? "desc" : "asc" } } };
+            
+            if (!string.IsNullOrEmpty(model.title) && isWildCard)
+                wildcard.Add("Title", $"{model.title}*");
 
-            if (!string.IsNullOrEmpty(model.Title) && isWildCard)
-                wildcard.Add("Title", $"{model.Title}*");
+            if (!string.IsNullOrEmpty(model.content) && isWildCard)
+                wildcard.Add("Content", $"{model.content}*");
 
-            if (!string.IsNullOrEmpty(model.Content) && isWildCard)
-                wildcard.Add("Content", $"{model.Content}*");
+            if (!string.IsNullOrEmpty(model.person) && isWildCard)
+                wildcard.Add("Person", $"{model.person}*");
 
-            if (!string.IsNullOrEmpty(model.Person) && isWildCard)
-                wildcard.Add("Person", $"{model.Person}*");
+            if (!string.IsNullOrEmpty(model.title) && !isWildCard)
+                match.Add("Title", model.title);
 
-            if (!string.IsNullOrEmpty(model.Title) && !isWildCard)
-                match.Add("Title", model.Title);
+            if (!string.IsNullOrEmpty(model.content) && !isWildCard)
+                match.Add("Content", model.content);
 
-            if (!string.IsNullOrEmpty(model.Content) && !isWildCard)
-                match.Add("Content", model.Content);
+            if (!string.IsNullOrEmpty(model.person) && !isWildCard)
+                match.Add("Person", model.person);
 
-            if (!string.IsNullOrEmpty(model.Person) && !isWildCard)
-                match.Add("Person", model.Person);
-
-            if (model.DateTime != DateTime.MinValue)
-                match.Add("DateTime", model.DateTime);
+            if (model.dateTime != DateTime.MinValue)
+                match.Add("DateTime", model.dateTime);
 
             if (match.Count == 0 && wildcard.Count == 0)
                 query.Add("match_all", new Dictionary<string,object>());

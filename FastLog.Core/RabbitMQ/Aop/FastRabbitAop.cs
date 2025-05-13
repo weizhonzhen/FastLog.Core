@@ -34,6 +34,7 @@ namespace FastLog.Core.RabbitMQ.Aop
                 var log = JsonSerializer.Deserialize<LogModel>(context.content["Add"].ToString());
                 if (log != null)
                 {
+                    client.Create<LogModel>(log.Type);
                     result = client.Add(log).IsSuccess;
 
                     if (logAop != null)
@@ -56,17 +57,17 @@ namespace FastLog.Core.RabbitMQ.Aop
                 var isSuccess = false;
                 var log = JsonSerializer.Deserialize<LogModel>(context.content["Delete"].ToString());
 
-                log.Id = JsonSerializer.Deserialize<string>(FastRabbit.ToDic(context.content["Delete"].ToString()).GetValue("id").ToString());
+                log.id = JsonSerializer.Deserialize<string>(FastRabbit.ToDic(context.content["Delete"].ToString()).GetValue("id").ToString());
                 if (log == null || string.IsNullOrEmpty(log.Type))
                     return;
-                var list = log.Id.Split(',').ToList();
-                if (!string.IsNullOrEmpty(log.Id) && list.Count == 1)
-                    isSuccess = client.Delete(log.Type, log.Id).IsSuccess;
-                if (!string.IsNullOrEmpty(log.Id) && list.Count > 1)
+                var list = log.id.Split(',').ToList();
+                if (!string.IsNullOrEmpty(log.id) && list.Count == 1)
+                    isSuccess = client.Delete(log.Type, log.id).IsSuccess;
+                if (!string.IsNullOrEmpty(log.id) && list.Count > 1)
                     isSuccess = client.Delete(log.Type, list).IsSuccess;
-                if (!string.IsNullOrEmpty(log.Title))
-                    isSuccess = client.Delete(log.Type, new { match = new { Title = log.Title } }).IsSuccess;
-                if (string.IsNullOrEmpty(log.Title) && string.IsNullOrEmpty(log.Id))
+                if (!string.IsNullOrEmpty(log.title))
+                    isSuccess = client.Delete(log.Type, new { match = new { Title = log.title } }).IsSuccess;
+                if (string.IsNullOrEmpty(log.title) && string.IsNullOrEmpty(log.id))
                     isSuccess = client.Delete(log.Type).IsSuccess;
 
                 if (logAop != null)

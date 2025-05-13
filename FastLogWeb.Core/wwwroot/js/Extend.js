@@ -33,12 +33,12 @@
             return s.join(",");
         },
     },
-    TableClickColor: function () {
-        $("#logTable tr").first().click();
-        $("#logTable tbody tr").click(function () {
+    TableClickColor: function (id) {
+        $("#" + id + " tr").first().click();
+        $("#" + id + "  tbody tr").click(function () {
             $(this).css("background-color", "#6CC2CC");
-            $("#logTable tbody tr:odd").not(this).css("background-color", "#ffffff");
-            $("#logTable tbody tr:even").not(this).css("background-color", "#f3f4f5");
+            $("#" + id + " tbody tr:odd").not(this).css("background-color", "#ffffff");
+            $("#" + id + " tbody tr:even").not(this).css("background-color", "#f3f4f5");
         });
     }
 });

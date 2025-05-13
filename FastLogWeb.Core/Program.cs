@@ -10,6 +10,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddMemoryCache();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddFastLogReceive("db.json", new FastLogAop());
+//builder.Services.AddFastLog();
 
 var app = builder.Build();
 
@@ -40,5 +41,9 @@ public class FastLogAop : IFastLogAop
 
     public void MqException(MqExceptionContext context) { }
 
-    public void MqReceive(MqReceiveContext context) { }
+    public void MqReceive(MqReceiveContext context) 
+    { 
+    
+    
+    }
 }
